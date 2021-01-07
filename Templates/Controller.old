@@ -1,0 +1,95 @@
+//
+// Template para criação de controller de Entidades
+//
+
+const modelUsuario = require ('../models/Usuario')
+
+
+class UsuarioController {
+
+	listarUsuario(req,res){  
+        modelUsuario.findAll(
+            {  order: [['date', 'DESC']] }
+        )
+        .then( function(arrayUsuario){
+                res.render('Usuario/tabelaUsuarios', {arrayUsuario: arrayUsuario})
+            })
+        .catch( function(erro){
+            req.flash('error_msg', 'Erro na consulta'+erro)
+            res.redirect('/')
+        })
+    }
+
+
+    formCadUsuario ( req , res ){
+        res.render('usuario/formAddAltUsuario')
+    }
+
+    formAltUsuario ( req , res ){
+        modelUsuario.findOne(
+            {  where: {id:req.params.id} }
+        )
+        .then( function(umUsuario){
+                umUsuario.dataValues.senha2=umUsuario.dataValues.senha
+                res.render('Usuario/formAddAltUsuario', {Usuario: umUsuario.dataValues})
+        })
+        .catch( function(erro){
+            req.flash('error_msg', 'Erro na consulta'+erro)
+            res.redirect('/Usuario/listarUsuario')
+        })
+    }
+
+    async addAltUsuario ( req , res ){
+        var erros = []
+		// Escrever código para validação
+		// var erros = ValidaçãoUsuario(req)
+
+        
+        if(erros.length > 0){
+            res.render('Usuario/formAddAltUsuario', {usuario:req.body, erros : erros})
+        }
+        else{                
+            var novoUsuario = {
+                nome: req.body.nome,
+                email: req.body.email,
+                senha: req.body.senha
+            }
+            if (req.body.id.length == 0){
+                modelUsuario.create(novoUsuario)
+                .then( function(item){
+					req.flash('success_msg', 'Cadastrado com sucesso!!!')
+					res.redirect('/Usuario/listarUsuario')
+				})
+                .catch( (erro) => {
+                    req.flash('error_msg', 'Erro!!! Não foi possível cadastrar. '+erro)
+                    res.redirect('/Usuario/listarUsuario')
+                })
+			}else{ 
+                modelUsuario.update(novoUsuario,
+                    {where: {id:req.body.id}})
+                .then( function(){
+                    req.flash('success_msg', 'Alterado com sucesso!!!')
+                    res.redirect('/Usuario/listarUsuario')
+                })
+                .catch( function(erro){
+                    req.flash('error_msg', 'Erro!!! Não foi possível alterar. ' + erro)
+                    res.redirect('/Usuario/listarUsuario')
+                })
+            }
+        }
+    }
+	
+	excUsuario(req, res){
+        modelUsuario.destroy({where: {'id' : req.params.id}})
+        .then( function(){
+            req.flash('success_msg', 'Exclusão efetuada com sucesso!!!')
+            res.redirect('/Usuario/listarUsuario')
+            })
+        .catch( function(erro){
+            req.flash('error_msg', 'Erro!!! Não foi possível excluir. '+erro)
+            res.redirect('/Usuario/listarUsuario')
+        })  
+    }
+	
+}
+module.exports = new UsuarioController()
