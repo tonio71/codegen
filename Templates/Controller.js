@@ -6,7 +6,7 @@ const model##Entidade## = require ('../models/##Entidade##')
 
 class ##Entidade##Controller {
 
-	listar##Entidade##(req,res){  
+	tabela##Entidade##(req,res){  
         model##Entidade##.findAll(
             {  order: [['date', 'DESC']] }
         )
